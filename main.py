@@ -1,3 +1,4 @@
+import time
 from tkinter import *
 from tkinter import messagebox, RIDGE, RIGHT, LEFT
 
@@ -29,7 +30,7 @@ class EmployeeSystem:
         self.var_pf_id = StringVar()
         self.var_contact = StringVar()
         self.var_experience = StringVar()
-        # self.var_address = StringVar()
+        self.var_address = StringVar()
 
         frame1 = Frame(root, bd=3, relief=RIDGE, bg='white')
         frame1.place(x=10, y=60, width=750, height=620)
@@ -198,7 +199,7 @@ class EmployeeSystem:
                                font=('times new roman', 15), bg='orange', fg='black')
         btn_calculate.place(x=210, y=255, width=100, height=30)
 
-        btn_save = Button(frame2, text='Save', font=('times new roman', 15), bg='green', fg='black')
+        btn_save = Button(frame2, text='Save', command=self.add, font=('times new roman', 15), bg='green', fg='black')
         btn_save.place(x=330, y=255, width=100, height=30)
 
         btn_clear = Button(frame2, text='Clear', font=('times new roman', 15), bg='gray', fg='black')
@@ -287,13 +288,35 @@ class EmployeeSystem:
         sal_frame2 = Frame(sal_frame1, bg='white', bd=2, relief=RIDGE)
         sal_frame2.place(x=0, y=33, relwidth=1, height=230)
 
+        # -----------------receipt_sample----------------
+
+        sample = f'''\tCompony Name, XYZ\n\tAddress: Xyz, Floor4
+------------------------------------------------
+| Employee ID\t\t: 
+| Salary Of\t\t: Mon-YYYY
+| Generated On\t\t: DD-MM-YYYY
+------------------------------------------------
+| Total Days\t\t: DD
+| Total Presents\t\t: DD
+| Total Absents\t\t: DD
+| Convince\t\t: Rs.----
+| Medical\t\t: Rs.----
+| P_Found\t\t: Rs.----
+| Gross Payments\t\t: Rs.-----
+| Net Salary\t\t: Rs.-----
+------------------------------------------------
+This is computer generated slip, not required
+any signature
+'''
+
         scroll_y = Scrollbar(sal_frame2, orient=VERTICAL)
         scroll_y.pack(fill=Y, side=RIGHT)
 
-        self.txt_sal_receipt = Text(sal_frame2, font=('times new roman', 15),
+        self.txt_sal_receipt = Text(sal_frame2, font=('times new roman', 12),
                                     bg='lightyellow', yscrollcommand=scroll_y.set)
         self.txt_sal_receipt.pack(fill=BOTH, expand=1)
         scroll_y.config(command=self.txt_sal_receipt.yview)
+        self.txt_sal_receipt.insert(END, sample)
 
         btn_print = Button(sal_frame1, text='Print', font=('times new roman', 15), bg='lightblue', fg='black')
         btn_print.place(x=220, y=265, width=80, height=30)
@@ -301,33 +324,59 @@ class EmployeeSystem:
         self.check_connection()
 
     def add(self):
-        # =============== frame1 variables ===============
-        print(self.var_tmp_code.get(),
-              self.var_designation.get(),
-              self.var_name.get(),
-              self.var_age.get(),
-              self.var_gender.get(),
-              self.var_email.get(),
-              self.var_dob.get(),
-              self.var_doj.get(),
-              self.var_pf_id.get(),
-              self.var_contact.get(),
-              self.var_experience.get(),
-              self.text_address.get('1.0', END),
+        if self.var_tmp_code.get() == '' or self.var_net_salary.get() == '' or self.var_name.get() == '':
+            messagebox.showerror('Error', 'Employee details are required')
 
-              # =============== frame2 variables ===============
-              self.var_month.get(),
-              self.var_year.get(),
-              self.var_b_salary.get(),
-              self.var_t_days.get(),
-              self.var_absent.get(),
-              self.var_medical.get(),
-              self.var_p_found.get(),
-              self.var_convince.get(),
-              self.var_net_salary.get(),
-              )
+        else:
+            try:
+                print('connecting...')
+                con = pymysql.Connect(host='localhost', user='root', password='password', db='database_name')
+                cur = con.cursor()
+                cur.execute("select * from table_name where e_id=%s", (self.var_tmp_code.get()))
+                row = cur.fetchone()
+                # print(rows)
+                if row is not None:
+                    messagebox.showerror('Error', 'This Employee is already exist', parent=self.root)
 
-    # def add(self):
+                else:
+                    cur.execute("insert into table_name values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                                "%s, %s, %s, %s, %s, %s, %s, %s)",
+                                (
+                                    self.var_tmp_code.get(),
+                                    self.var_designation.get(),
+                                    self.var_name.get(),
+                                    self.var_age.get(),
+                                    self.var_gender.get(),
+                                    self.var_email.get(),
+                                    self.var_doj.get(),
+                                    self.var_dob.get(),
+                                    self.var_contact.get(),
+                                    self.var_experience.get(),
+                                    self.var_pf_id.get(),
+                                    self.text_address.get('1.0', END),
+
+                                    self.var_month.get(),
+                                    self.var_year.get(),
+                                    self.var_b_salary.get(),
+                                    self.var_t_days.get(),
+                                    self.var_absent.get(),
+                                    self.var_medical.get(),
+                                    self.var_p_found.get(),
+                                    self.var_convince.get(),
+                                    self.var_net_salary.get(),
+                                    self.var_tmp_code.get()+'.txt'
+                                ))
+                    con.commit()
+                    con.close()
+
+                    file_ = open('Salary_Receipt/'+str(self.var_tmp_code.get())+'.txt', 'w')
+                    file_.write(self.txt_sal_receipt.get('1.0', END))
+                    file_.close()
+
+                    messagebox.showinfo('Success', 'Record Added Successfully')
+
+            except Exception as e:
+                messagebox.showerror('Error', f"{e}")
 
     def cal_salary(self):
         if self.var_month.get() == '' or self.var_year.get() == '' or self.var_b_salary.get() == '' or self.var_net_salary.get() == '':
@@ -341,6 +390,27 @@ class EmployeeSystem:
             addition = int(self.var_convince.get())
             net_sal = sal_-detect+addition
             self.var_net_salary.set(str(round(net_sal, 2)))
+
+            new_sample = f'''\tCompony Name, XYZ\n\tAddress: Xyz, Floor4
+------------------------------------------------
+| Employee ID\t\t: {self.var_tmp_code.get()}
+| Salary Of\t\t: {self.var_month.get()}-{self.var_year.get()}
+| Generated On\t\t: {str(time.strftime("%d-%m-%Y"))}
+------------------------------------------------
+| Total Days\t\t: {self.var_t_days.get()}
+| Total Presents\t\t: {str(int(self.var_t_days.get())-int(self.var_absent.get()))}
+| Total Absents\t\t: {self.var_absent.get()}
+| Convince\t\t: Rs.{self.var_convince.get()}
+| Medical\t\t: Rs.{self.var_medical.get()}
+| P_Found\t\t: Rs.{self.var_p_found.get()}
+| Gross Payments\t\t: Rs.{self.var_b_salary.get()}
+| Net Salary\t\t: Rs.{self.var_net_salary.get()}
+------------------------------------------------
+This is computer generated slip, not required
+any signature
+'''
+            self.txt_sal_receipt.delete('1.0', END)
+            self.txt_sal_receipt.insert(END, new_sample)
 
     def check_connection(self):
         try:
