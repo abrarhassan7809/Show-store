@@ -1,0 +1,20 @@
+	Compony Name, XYZ
+	Address: Xyz, Floor4
+------------------------------------------------
+| Employee ID		: 5
+| Salary Of		: 23456-23456
+| Generated On		: 17-12-2022
+------------------------------------------------
+| Total Days		: 30
+| Total Presents		: 30
+| Total Absents		: 0
+| Convince		: Rs.500
+| Medical		: Rs.400
+| P_Found		: Rs.500
+| Gross Payments		: Rs.50000
+| Net Salary		: Rs.49600.0
+------------------------------------------------
+This is computer generated slip, not required
+any signature
+
+
