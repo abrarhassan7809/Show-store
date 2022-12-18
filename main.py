@@ -1,7 +1,9 @@
 from tkinter import *
-from tkinter import messagebox, RIDGE, RIGHT, LEFT
+from tkinter import messagebox, RIDGE, RIGHT, LEFT, ttk
 import pymysql
 import time
+import os
+import tempfile
 
 
 class EmployeeSystem:
@@ -13,7 +15,7 @@ class EmployeeSystem:
         root.config(bg='white')
         title = Label(root, text='Employee Payroll Management System :', font=('times new roman', 20, 'bold'), bg='#262626', fg='white', justify=LEFT)
         title.place(x=0, y=0, relwidth=1)
-        btn_emp_show = Button(self.root, text="All Employee's", font=('times new roman', 13), bg='gray', fg='white')
+        btn_emp_show = Button(self.root, text="All Employee's", command=self.employee_frame, font=('times new roman', 13), bg='gray', fg='white')
         btn_emp_show.place(x=1100, y=7, width=120, height=25)
 
         # =============== Frame 1 ===============
@@ -303,8 +305,8 @@ any signature
         scroll_y.config(command=self.txt_sal_receipt.yview)
         self.txt_sal_receipt.insert(END, self.sample)
 
-        btn_print = Button(sal_frame1, text='Print', font=('times new roman', 15), bg='lightblue', fg='black')
-        btn_print.place(x=220, y=265, width=80, height=30)
+        self.btn_print = Button(sal_frame1, text='Print', state=DISABLED, command=self.print_receipt, font=('times new roman', 15), bg='lightblue', fg='black')
+        self.btn_print.place(x=220, y=265, width=80, height=30)
 
         self.check_connection()
 
@@ -355,6 +357,7 @@ any signature
                     self.btn_save.config(state=DISABLED)
                     self.btn_update.config(state=NORMAL)
                     self.btn_delete.config(state=NORMAL)
+                    self.btn_print.config(state=NORMAL)
                     self.text_code.config(state='readonly')
 
             except Exception as e:
@@ -365,6 +368,7 @@ any signature
         self.btn_update.config(state=DISABLED)
         self.btn_delete.config(state=DISABLED)
         self.text_code.config(state=NORMAL)
+        self.btn_print.config(state=DISABLED)
 
         self.var_tmp_code.set('')
         self.var_designation.set('')
@@ -466,6 +470,7 @@ any signature
                     file_.close()
 
                     messagebox.showinfo('Success', 'Record Added Successfully')
+                    self.btn_print.config(state=NORMAL)
 
             except Exception as e:
                 messagebox.showerror('Inserting Error', f"{e}")
@@ -561,7 +566,6 @@ any signature
 
     def check_connection(self):
         try:
-            print('connecting...')
             con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
             cur = con.cursor()
             cur.execute("select * from emp_salary where e_id=%s", (self.var_tmp_code.get()))
@@ -569,6 +573,101 @@ any signature
 
         except Exception as e:
             messagebox.showerror('Error connection', f"{e}")
+
+    def show_emp(self):
+        try:
+            con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
+            cur = con.cursor()
+            cur.execute("select * from emp_salary")
+            rows = cur.fetchall()
+            self.employee_tree.delete(* self.employee_tree.get_children())
+
+            for row in rows:
+                self.employee_tree.insert('', END, values=row)
+            con.close()
+
+        except Exception as e:
+            messagebox.showerror('Error connection', f"{e}")
+
+    def employee_frame(self):
+        self.root2 = Toplevel(self.root)
+        self.root2.title('Employee Payroll Management System | Developed By Abrar/Hassan')
+        self.root2.geometry('1000x500+150+100')
+        self.root2.config(bg='white')
+        title = Label(self.root2, text='All Employee Details', font=('times new roman', 18, 'bold'), bg='#262626', fg='white', justify=LEFT)
+        title.pack(side=TOP, fill=X)
+        self.root2.focus_force()
+
+        scroll_y = Scrollbar(self.root2, orient=VERTICAL)
+        scroll_y.pack(side=RIGHT, fill=Y)
+        scroll_x = Scrollbar(self.root2, orient=HORIZONTAL)
+        scroll_x.pack(side=BOTTOM, fill=X)
+
+        self.employee_tree = ttk.Treeview(self.root2, columns=('e_id', 'designation', 'name', 'age', 'gender', 'email',
+                                                               'doj', 'dob', 'experience', 'proof_id', 'contact',
+                                                               'address', 'month', 'year', 'basic_salary', 't_days',
+                                                               'absent_days', 'medical', 'p_found', 'convince',
+                                                               'net_salary', 'salary_receipt'),
+                                          yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+        self.employee_tree.heading('e_id', text='Employee ID')
+        self.employee_tree.heading('designation', text='Designation')
+        self.employee_tree.heading('name', text='Name')
+        self.employee_tree.heading('age', text='Age')
+        self.employee_tree.heading('gender', text='Gender')
+        self.employee_tree.heading('email', text='Email')
+        self.employee_tree.heading('doj', text='D.O.J')
+        self.employee_tree.heading('dob', text='D.O.B')
+        self.employee_tree.heading('experience', text='Experience')
+        self.employee_tree.heading('proof_id', text='Proof ID')
+        self.employee_tree.heading('contact', text='Contact')
+        self.employee_tree.heading('address', text='Address')
+        self.employee_tree.heading('month', text='Month')
+        self.employee_tree.heading('year', text='Year')
+        self.employee_tree.heading('t_days', text='Total Days')
+        self.employee_tree.heading('absent_days', text='Absent Days')
+        self.employee_tree.heading('medical', text='Medical')
+        self.employee_tree.heading('p_found', text='P Found')
+        self.employee_tree.heading('convince', text='Convince')
+        self.employee_tree.heading('basic_salary', text='Basic Salary')
+        self.employee_tree.heading('net_salary', text='Net Salary')
+        self.employee_tree.heading('salary_receipt', text='Salary Receipt')
+
+        self.employee_tree['show'] = 'headings'
+
+        self.employee_tree.column('e_id', width=100)
+        self.employee_tree.column('designation', width=100)
+        self.employee_tree.column('name', width=100)
+        self.employee_tree.column('age', width=100)
+        self.employee_tree.column('gender', width=100)
+        self.employee_tree.column('email', width=100)
+        self.employee_tree.column('doj', width=100)
+        self.employee_tree.column('dob', width=100)
+        self.employee_tree.column('experience', width=100)
+        self.employee_tree.column('proof_id', width=100)
+        self.employee_tree.column('contact', width=100)
+        self.employee_tree.column('address', width=200)
+        self.employee_tree.column('month', width=100)
+        self.employee_tree.column('year', width=100)
+        self.employee_tree.column('t_days', width=100)
+        self.employee_tree.column('absent_days', width=100)
+        self.employee_tree.column('medical', width=100)
+        self.employee_tree.column('p_found', width=100)
+        self.employee_tree.column('convince', width=100)
+        self.employee_tree.column('basic_salary', width=100)
+        self.employee_tree.column('net_salary', width=100)
+        self.employee_tree.column('salary_receipt', width=100)
+
+        scroll_y.config(command=self.employee_tree.yview)
+        scroll_x.config(command=self.employee_tree.xview)
+        self.employee_tree.pack(fill=BOTH, expand=1)
+
+        self.show_emp()
+        self.root2.mainloop()
+
+    def print_receipt(self):
+        file_ = tempfile.mktemp('.txt')
+        open(file_, 'w').write(self.txt_sal_receipt.get('1.0', END))
+        os.startfile(file_, 'print')
 
 
 win = Tk()
