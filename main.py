@@ -13,7 +13,7 @@ class EmployeeSystem:
         root.title('Employee Payroll Management System | Developed By Abrar/Hassan')
         root.geometry('1350x700+5+5')
         root.config(bg='white')
-        title = Label(root, text='Employee Payroll Management System :', font=('times new roman', 20, 'bold'), bg='#262626', fg='white', justify=LEFT)
+        title = Label(root, text='Employee Payroll Management System', font=('times new roman', 20, 'bold'), bg='#262626', fg='white', justify=LEFT)
         title.place(x=0, y=0, relwidth=1)
         btn_emp_show = Button(self.root, text="All Employee's", command=self.employee_frame, font=('times new roman', 13), bg='gray', fg='white')
         btn_emp_show.place(x=1100, y=7, width=120, height=25)
@@ -21,7 +21,7 @@ class EmployeeSystem:
         # =============== Frame 1 ===============
         # =============== variables ===============
 
-        self.var_tmp_code = StringVar()
+        self.var_emp_id = StringVar()
         self.var_designation = StringVar()
         self.var_name = StringVar()
         self.var_age = StringVar()
@@ -36,14 +36,14 @@ class EmployeeSystem:
 
         frame1 = Frame(root, bd=3, relief=RIDGE, bg='white')
         frame1.place(x=10, y=60, width=750, height=620)
-        title1 = Label(frame1, text='Employee Details :', font=('times new roman', 18), bg='lightgray', fg='black', anchor='w', padx=10)
+        title1 = Label(frame1, text='Employee Details', font=('times new roman', 18), bg='lightgray', fg='black', anchor='w', padx=10)
         title1.place(x=0, y=0, relwidth=1)
 
         # ================ row 1 ================
-        label_code = Label(frame1, text='Employee Code :', font=('times new roman', 15), bg='white', fg='black')
-        label_code.place(x=10, y=60)
-        self.text_code = Entry(frame1, font=('times new roman', 15), textvariable=self.var_tmp_code, bg='white', fg='black')
-        self.text_code.place(x=180, y=60, width=200)
+        label_id = Label(frame1, text='Employee ID :', font=('times new roman', 15), bg='white', fg='black')
+        label_id.place(x=10, y=60)
+        self.text_id = Entry(frame1, font=('times new roman', 15), textvariable=self.var_emp_id, bg='white', fg='black')
+        self.text_id.place(x=180, y=60, width=200)
         btn_search = Button(frame1, text='Search', command=self.search, font=('times new roman', 15), bg='gray', fg='black')
         btn_search.place(x=400, y=56, width=80, height=30)
 
@@ -220,8 +220,7 @@ class EmployeeSystem:
         cal_frame = Frame(frame3, bd=2, bg='white', relief=RIDGE)
         cal_frame.place(x=2, y=2, width=248, height=300)
 
-        text_result = Entry(cal_frame, textvariable=self.var_txt, font=('times new roman', 20), bg='lightyellow',
-                            justify=RIGHT)
+        text_result = Entry(cal_frame, textvariable=self.var_txt, font=('times new roman', 20), bg='lightyellow', justify=RIGHT)
         text_result.place(x=0, y=0, relwidth=1, height=50)
 
         # ================ cal row 1 ===============
@@ -280,18 +279,18 @@ class EmployeeSystem:
 
         self.sample = f'''\tCompony Name, XYZ\n\tAddress: Xyz, Floor4
 ------------------------------------------------
-| Employee ID\t\t: 
-| Salary Of\t\t: Mon-YYYY
-| Generated On\t\t: DD-MM-YYYY
+ Employee ID\t\t: 
+ Salary Of\t\t: Mon-YYYY
+ Generated On\t\t: DD-MM-YYYY
 ------------------------------------------------
-| Total Days\t\t: DD
-| Total Presents\t\t: DD
-| Total Absents\t\t: DD
-| Convince\t\t: Rs.----
-| Medical\t\t: Rs.----
-| P_Found\t\t: Rs.----
-| Gross Payments\t\t: Rs.-----
-| Net Salary\t\t: Rs.-----
+ Total Days\t\t: DD
+ Total Presents\t\t: DD
+ Total Absents\t\t: DD
+ Convince\t\t: Rs.----
+ Medical\t\t: Rs.----
+ P_Found\t\t: Rs.----
+ Gross Payments\t\t: Rs.-----
+ Net Salary\t\t: Rs.-----
 ------------------------------------------------
 This is computer generated slip, not required
 any signature
@@ -310,21 +309,23 @@ any signature
 
         self.check_connection()
 
+        # =============== Frame 3 ===============
+
     def search(self):
-        if self.var_tmp_code.get() == '':
-            messagebox.showerror('Error', 'Employee ID Must Be Required')
+        if self.var_emp_id.get() == '' or self.var_name.get() == '':
+            messagebox.showerror('Error', 'Employee ID and Name must be required')
 
         else:
             try:
                 con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_tmp_code.get()))
+                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
                 row = cur.fetchone()
                 if row is None:
-                    messagebox.showerror('Error', 'Invalid Employee ID', parent=self.root)
+                    messagebox.showerror('Error', 'Invalid Employee ID and Name', parent=self.root)
 
                 else:
-                    self.var_tmp_code.set(row[0])
+                    self.var_emp_id.set(row[0])
                     self.var_designation.set(row[1])
                     self.var_name.set(row[2])
                     self.var_age.set(row[3])
@@ -358,7 +359,7 @@ any signature
                     self.btn_update.config(state=NORMAL)
                     self.btn_delete.config(state=NORMAL)
                     self.btn_print.config(state=NORMAL)
-                    self.text_code.config(state='readonly')
+                    self.text_id.config(state='readonly')
 
             except Exception as e:
                 messagebox.showerror('Search Error', f"{e}")
@@ -367,10 +368,10 @@ any signature
         self.btn_save.config(state=NORMAL)
         self.btn_update.config(state=DISABLED)
         self.btn_delete.config(state=DISABLED)
-        self.text_code.config(state=NORMAL)
+        self.text_id.config(state=NORMAL)
         self.btn_print.config(state=DISABLED)
 
-        self.var_tmp_code.set('')
+        self.var_emp_id.set('')
         self.var_designation.set('')
         self.var_name.set('')
         self.var_age.set('')
@@ -396,14 +397,14 @@ any signature
         self.txt_sal_receipt.insert(END, self.sample)
 
     def delete(self):
-        if self.var_tmp_code.get() == '':
-            messagebox.showerror('Error', 'Employee ID Must Be Required')
+        if self.var_emp_id.get() == '' or self.var_name.get() == '':
+            messagebox.showerror('Error', 'Employee ID and Name must be required')
 
         else:
             try:
                 con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_tmp_code.get()))
+                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
                 row = cur.fetchone()
                 if row is None:
                     messagebox.showerror('Error', 'Invalid Employee ID', parent=self.root)
@@ -411,34 +412,34 @@ any signature
                 else:
                     op = messagebox.askyesno("Confirm", "Do you want to delete?")
                     if op:
-                        cur.execute('delete from emp_salary where e_id=%s', (self.var_tmp_code.get()))
+                        cur.execute('delete from emp_salary where e_id=%s', (self.var_emp_id.get()))
                         con.commit()
                         con.close()
 
-                        messagebox.showinfo('Delete', 'Deleted Successfully', parent=self.root)
+                        messagebox.showinfo('Delete', 'Record Deleted Successfully', parent=self.root)
                         self.clear()
 
             except Exception as e:
                 messagebox.showerror('Delete Error', f"{e}")
 
     def add(self):
-        if self.var_tmp_code.get() == '' or self.var_net_salary.get() == '' or self.var_name.get() == '':
-            messagebox.showerror('Error', 'Employee details are required')
+        if self.var_emp_id.get() == '' or self.var_net_salary.get() == '' or self.var_name.get() == '' or self.var_address.get() == '':
+            messagebox.showerror('Error', 'All Employee details are required')
 
         else:
             try:
                 con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_tmp_code.get()))
+                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
                 row = cur.fetchone()
                 if row is not None:
-                    messagebox.showerror('Error', 'This Employee is already exist', parent=self.root)
+                    messagebox.showerror('Error', 'Employee is already exist', parent=self.root)
 
                 else:
                     cur.execute("insert into emp_salary values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
                                 "%s, %s, %s, %s, %s, %s, %s, %s)",
                                 (
-                                    self.var_tmp_code.get(),
+                                    self.var_emp_id.get(),
                                     self.var_designation.get(),
                                     self.var_name.get(),
                                     self.var_age.get(),
@@ -460,12 +461,12 @@ any signature
                                     self.var_p_found.get(),
                                     self.var_convince.get(),
                                     self.var_net_salary.get(),
-                                    self.var_tmp_code.get() + '.txt'
+                                    self.var_emp_id.get() + '.txt'
                                 ))
                     con.commit()
                     con.close()
 
-                    file_ = open('Salary_Receipt/' + str(self.var_tmp_code.get()) + '.txt', 'w')
+                    file_ = open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w')
                     file_.write(self.txt_sal_receipt.get('1.0', END))
                     file_.close()
 
@@ -476,17 +477,17 @@ any signature
                 messagebox.showerror('Inserting Error', f"{e}")
 
     def update(self):
-        if self.var_tmp_code.get() == '' or self.var_net_salary.get() == '' or self.var_name.get() == '':
-            messagebox.showerror('Error', 'Employee details are required')
+        if self.var_emp_id.get() == '':
+            messagebox.showerror('Error', 'Employee must be required')
 
         else:
             try:
                 con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_tmp_code.get()))
+                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
                 row = cur.fetchone()
                 if row is None:
-                    messagebox.showerror('Error', 'Employee ID is Invalid', parent=self.root)
+                    messagebox.showerror('Error', 'Invalid Employee ID', parent=self.root)
 
                 else:
                     cur.execute("UPDATE emp_salary SET designation=%s, name=%s, age=%s, gender=%s, email=%s, doj=%s,"
@@ -515,17 +516,17 @@ any signature
                                     self.var_p_found.get(),
                                     self.var_convince.get(),
                                     self.var_net_salary.get(),
-                                    self.var_tmp_code.get() + '.txt',
-                                    self.var_tmp_code.get()
+                                    self.var_emp_id.get() + '.txt',
+                                    self.var_emp_id.get()
                                 ))
                     con.commit()
                     con.close()
 
-                    file_ = open('Salary_Receipt/' + str(self.var_tmp_code.get()) + '.txt', 'w')
+                    file_ = open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w')
                     file_.write(self.txt_sal_receipt.get('1.0', END))
                     file_.close()
 
-                    messagebox.showinfo('Success', 'Record Updated Successfully')
+                    messagebox.showinfo('Success', 'Record Update Successfully')
 
             except Exception as e:
                 messagebox.showerror('Inserting Error', f"{e}")
@@ -545,18 +546,18 @@ any signature
 
             new_sample = f'''\tCompony Name, XYZ\n\tAddress: Xyz, Floor4
 ------------------------------------------------
-| Employee ID\t\t: {self.var_tmp_code.get()}
-| Salary Of\t\t: {self.var_month.get()}-{self.var_year.get()}
-| Generated On\t\t: {str(time.strftime("%d-%m-%Y"))}
+ Employee ID\t\t: {self.var_emp_id.get()}
+ Salary Of\t\t: {self.var_month.get()}-{self.var_year.get()}
+ Generated On\t\t: {str(time.strftime("%d-%m-%Y"))}
 ------------------------------------------------
-| Total Days\t\t: {self.var_t_days.get()}
-| Total Presents\t\t: {str(int(self.var_t_days.get()) - int(self.var_absent.get()))}
-| Total Absents\t\t: {self.var_absent.get()}
-| Convince\t\t: Rs.{self.var_convince.get()}
-| Medical\t\t: Rs.{self.var_medical.get()}
-| P_Found\t\t: Rs.{self.var_p_found.get()}
-| Gross Payments\t\t: Rs.{self.var_b_salary.get()}
-| Net Salary\t\t: Rs.{self.var_net_salary.get()}
+ Total Days\t\t: {self.var_t_days.get()}
+ Total Presents\t\t: {str(int(self.var_t_days.get()) - int(self.var_absent.get()))}
+ Total Absents\t\t: {self.var_absent.get()}
+ Convince\t\t: Rs.{self.var_convince.get()}
+ Medical\t\t: Rs.{self.var_medical.get()}
+ P_Found\t\t: Rs.{self.var_p_found.get()}
+ Gross Payments\t\t: Rs.{self.var_b_salary.get()}
+ Net Salary\t\t: Rs.{self.var_net_salary.get()}
 ------------------------------------------------
 This is computer generated slip, not required
 any signature
@@ -568,7 +569,7 @@ any signature
         try:
             con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
             cur = con.cursor()
-            cur.execute("select * from emp_salary where e_id=%s", (self.var_tmp_code.get()))
+            cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
             cur.fetchone()
 
         except Exception as e:
