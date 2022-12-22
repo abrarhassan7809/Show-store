@@ -474,7 +474,7 @@ any signature
                     messagebox.showerror('Error', 'Invalid Employee ID', parent=self.root)
 
                 else:
-                    cur.execute(f"update emp_table set designation='{self.var_designation.get()}', name='{self.var_name.get()}',"
+                    cur.execute(f"update emp_table set e_id={self.var_emp_id.get()}, designation='{self.var_designation.get()}', name='{self.var_name.get()}',"
                                 f"age='{self.var_age.get()}', gender='{self.var_gender.get()}',"
                                 f"email='{self.var_email.get()}', doj='{self.var_doj.get()}', dob='{self.var_dob.get()}',"
                                 f"experience='{self.var_experience.get()}', proof_id='{self.var_pf_id.get()}',"
