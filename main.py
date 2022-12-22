@@ -1,9 +1,6 @@
 from tkinter import *
 from tkinter import messagebox, RIDGE, RIGHT, LEFT, ttk
-import pymysql
-import time
-import os
-import tempfile
+import time, os, tempfile, sqlite3
 
 
 class EmployeeSystem:
@@ -317,10 +314,11 @@ any signature
 
         else:
             try:
-                con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
+                con = sqlite3.connect("emp_salary.db")
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
+                cur.execute(f"select * from emp_table where e_id={self.var_emp_id.get()}")
                 row = cur.fetchone()
+                # print(row)
                 if row is None:
                     messagebox.showerror('Error', 'Invalid Employee ID and Name', parent=self.root)
 
@@ -397,22 +395,23 @@ any signature
         self.txt_sal_receipt.insert(END, self.sample)
 
     def delete(self):
-        if self.var_emp_id.get() == '' or self.var_name.get() == '':
+        if self.var_emp_id.get() == '':
             messagebox.showerror('Error', 'Employee ID and Name must be required')
 
         else:
             try:
-                con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
+                con = sqlite3.connect("emp_salary.db")
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
+                cur.execute(f"select e_id from emp_table where e_id={self.var_emp_id.get()}")
                 row = cur.fetchone()
+
                 if row is None:
                     messagebox.showerror('Error', 'Invalid Employee ID', parent=self.root)
 
                 else:
                     op = messagebox.askyesno("Confirm", "Do you want to delete?")
                     if op:
-                        cur.execute('delete from emp_salary where e_id=%s', (self.var_emp_id.get()))
+                        cur.execute(f"delete from emp_table where e_id={self.var_emp_id.get()}")
                         con.commit()
                         con.close()
 
@@ -423,58 +422,43 @@ any signature
                 messagebox.showerror('Delete Error', f"{e}")
 
     def add(self):
-        if self.var_emp_id.get() == '' or self.var_net_salary.get() == '' or self.var_name.get() == '' or self.var_address.get() == '':
-            messagebox.showerror('Error', 'All Employee details are required')
+        # if self.var_emp_id.get() == '' or self.var_net_salary.get() == '' or self.var_name.get() == '' or self.var_address.get() == '':
+        #     messagebox.showerror('Error', 'All Employee details are required')
 
-        else:
-            try:
-                con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
-                cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
-                row = cur.fetchone()
-                if row is not None:
-                    messagebox.showerror('Error', 'Employee is already exist', parent=self.root)
+        # else:
+        try:
+            con = sqlite3.connect("emp_salary.db")
+            cur = con.cursor()
+            cur.execute(f"select e_id from emp_table where e_id={self.var_emp_id.get()}")
+            row = cur.fetchone()
 
-                else:
-                    cur.execute("insert into emp_salary values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
-                                "%s, %s, %s, %s, %s, %s, %s, %s)",
-                                (
-                                    self.var_emp_id.get(),
-                                    self.var_designation.get(),
-                                    self.var_name.get(),
-                                    self.var_age.get(),
-                                    self.var_gender.get(),
-                                    self.var_email.get(),
-                                    self.var_doj.get(),
-                                    self.var_dob.get(),
-                                    self.var_experience.get(),
-                                    self.var_pf_id.get(),
-                                    self.var_contact.get(),
-                                    self.text_address.get('1.0', END),
+            if row is not None:
+                messagebox.showerror('Error', 'Employee is already exist', parent=self.root)
 
-                                    self.var_month.get(),
-                                    self.var_year.get(),
-                                    self.var_b_salary.get(),
-                                    self.var_t_days.get(),
-                                    self.var_absent.get(),
-                                    self.var_medical.get(),
-                                    self.var_p_found.get(),
-                                    self.var_convince.get(),
-                                    self.var_net_salary.get(),
-                                    self.var_emp_id.get() + '.txt'
-                                ))
-                    con.commit()
-                    con.close()
+            else:
+                query = f"insert into emp_table (e_id, designation, name, age, gender, email, doj, dob," \
+                        f"experience, proof_id, contact, address, month, year, b_salary, total_days, absent_days, medical," \
+                        f"p_found, convince, net_salary, salary_receipt) values ({self.var_emp_id.get()}," \
+                        f"'{self.var_designation.get()}','{self.var_name.get()}','{self.var_age.get()}','{self.var_gender.get()}'," \
+                        f"'{self.var_email.get()}','{self.var_doj.get()}','{self.var_dob.get()}','{self.var_experience.get()}'," \
+                        f"'{self.var_pf_id.get()}','{self.var_contact.get()}','{self.text_address.get('1.0', END)}'," \
+                        f"'{self.var_month.get()}','{self.var_year.get()}','{self.var_b_salary.get()}','{self.var_t_days.get()}'," \
+                        f"'{self.var_absent.get()}','{self.var_medical.get()}','{self.var_p_found.get()}'," \
+                        f"'{self.var_convince.get()}','{self.var_net_salary.get()}','{self.var_emp_id.get()}.txt')"
 
-                    file_ = open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w')
-                    file_.write(self.txt_sal_receipt.get('1.0', END))
-                    file_.close()
+                con.execute(query)
+                con.commit()
+                con.close()
 
-                    messagebox.showinfo('Success', 'Record Added Successfully')
-                    self.btn_print.config(state=NORMAL)
+                file_ = open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w')
+                file_.write(self.txt_sal_receipt.get('1.0', END))
+                file_.close()
 
-            except Exception as e:
-                messagebox.showerror('Inserting Error', f"{e}")
+                messagebox.showinfo('Success', 'Record Added Successfully')
+                self.btn_print.config(state=NORMAL)
+
+        except Exception as e:
+            messagebox.showerror('Inserting Error', f"{e}")
 
     def update(self):
         if self.var_emp_id.get() == '':
@@ -482,43 +466,24 @@ any signature
 
         else:
             try:
-                con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
+                con = sqlite3.connect("emp_salary.db")
                 cur = con.cursor()
-                cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
+                cur.execute(f"select * from emp_table where e_id={self.var_emp_id.get()}")
                 row = cur.fetchone()
                 if row is None:
                     messagebox.showerror('Error', 'Invalid Employee ID', parent=self.root)
 
                 else:
-                    cur.execute("UPDATE emp_salary SET designation=%s, name=%s, age=%s, gender=%s, email=%s, doj=%s,"
-                                "dob=%s, experience=%s, proof_id=%s, contact=%s, address=%s, month=%s, year=%s,"
-                                "basic_salary=%s, t_days=%s, absent_days=%s, medical=%s, p_found=%s, convince=%s,"
-                                "net_salary=%s, salary_receipt=%s WHERE e_id=%s",
-                                (
-                                    self.var_designation.get(),
-                                    self.var_name.get(),
-                                    self.var_age.get(),
-                                    self.var_gender.get(),
-                                    self.var_email.get(),
-                                    self.var_doj.get(),
-                                    self.var_dob.get(),
-                                    self.var_experience.get(),
-                                    self.var_pf_id.get(),
-                                    self.var_contact.get(),
-                                    self.text_address.get('1.0', END),
-
-                                    self.var_month.get(),
-                                    self.var_year.get(),
-                                    self.var_b_salary.get(),
-                                    self.var_t_days.get(),
-                                    self.var_absent.get(),
-                                    self.var_medical.get(),
-                                    self.var_p_found.get(),
-                                    self.var_convince.get(),
-                                    self.var_net_salary.get(),
-                                    self.var_emp_id.get() + '.txt',
-                                    self.var_emp_id.get()
-                                ))
+                    cur.execute(f"update emp_table set designation='{self.var_designation.get()}', name='{self.var_name.get()}',"
+                                f"age='{self.var_age.get()}', gender='{self.var_gender.get()}',"
+                                f"email='{self.var_email.get()}', doj='{self.var_doj.get()}', dob='{self.var_dob.get()}',"
+                                f"experience='{self.var_experience.get()}', proof_id='{self.var_pf_id.get()}',"
+                                f"contact='{self.var_contact.get()}', address='{self.text_address.get('1.0', END)}',"
+                                f"month='{self.var_month.get()}', year='{self.var_year.get()}',"
+                                f"b_salary='{self.var_b_salary.get()}',total_days='{self.var_t_days.get()}',"
+                                f"absent_days='{self.var_absent.get()}', medical='{self.var_medical.get()}',"
+                                f"p_found='{self.var_p_found.get()}', convince='{self.var_convince.get()}',"
+                                f"net_salary='{self.var_net_salary.get()}', salary_receipt='{self.var_emp_id.get()}.txt' where e_id={self.var_emp_id.get()}")
                     con.commit()
                     con.close()
 
@@ -567,19 +532,25 @@ any signature
 
     def check_connection(self):
         try:
-            con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
-            cur = con.cursor()
-            cur.execute("select * from emp_salary where e_id=%s", (self.var_emp_id.get()))
-            cur.fetchone()
+            con = sqlite3.connect("emp_salary.db")
+            query = f"CREATE TABLE emp_table (e_id INTEGER PRIMARY KEY, designation TEXT NOT NULL, name TEXT NOT NULL, age TEXT NOT NULL, gender TEXT NOT NULL, email TEXT NOT NULL UNIQUE, doj TEXT NOT NULL, dob TEXT NOT NULL," \
+                    f"experience TEXT NOT NULL, proof_id TEXT NOT NULL, contact TEXT NOT NULL UNIQUE, address TEXT NOT NULL, month TEXT NOT NULL, year TEXT NOT NULL, b_salary TEXT NOT NULL, total_days TEXT NOT NULL, absent_days TEXT NOT NULL, medical TEXT NOT NULL," \
+                    f"p_found TEXT NOT NULL, convince TEXT NOT NULL, net_salary TEXT NOT NULL, salary_receipt TEXT NOT NULL)"
+
+            con.execute(query)
+            con.commit()
+            con.close()
+
+            print('Database connected...')
 
         except Exception as e:
             messagebox.showerror('Error connection', f"{e}")
 
     def show_emp(self):
         try:
-            con = pymysql.Connect(host='localhost', user='root', password='', db='ems')
+            con = sqlite3.connect("emp_salary.db")
             cur = con.cursor()
-            cur.execute("select * from emp_salary")
+            cur.execute("select * from emp_table")
             rows = cur.fetchall()
             self.employee_tree.delete(* self.employee_tree.get_children())
 
