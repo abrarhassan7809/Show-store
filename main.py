@@ -3,6 +3,13 @@ from tkinter import messagebox, RIDGE, RIGHT, LEFT, ttk
 import time, os, tempfile, sqlite3
 
 
+# ------------create folder----------
+current_directory = os.getcwd()
+final_directory = os.path.join(current_directory, r'Salary_Receipt')
+if not os.path.exists(final_directory):
+    os.makedirs(final_directory)
+
+
 class EmployeeSystem:
     def __init__(self, root):
         self.root = root
@@ -446,13 +453,13 @@ any signature
                         f"'{self.var_absent.get()}','{self.var_medical.get()}','{self.var_p_found.get()}'," \
                         f"'{self.var_convince.get()}','{self.var_net_salary.get()}','{self.var_emp_id.get()}.txt')"
 
-                con.execute(query)
+                cur.execute(query)
                 con.commit()
                 con.close()
 
-                file_ = open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w')
-                file_.write(self.txt_sal_receipt.get('1.0', END))
-                file_.close()
+                with open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w') as file_:
+                    file_.write(self.txt_sal_receipt.get('1.0', END))
+                    # file_.close()
 
                 messagebox.showinfo('Success', 'Record Added Successfully')
                 self.btn_print.config(state=NORMAL)
@@ -487,9 +494,9 @@ any signature
                     con.commit()
                     con.close()
 
-                    file_ = open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w')
-                    file_.write(self.txt_sal_receipt.get('1.0', END))
-                    file_.close()
+                    with open('Salary_Receipt/' + str(self.var_emp_id.get()) + '.txt', 'w') as file_:
+                        file_.write(self.txt_sal_receipt.get('1.0', END))
+                        # file_.close()
 
                     messagebox.showinfo('Success', 'Record Update Successfully')
 
@@ -533,15 +540,15 @@ any signature
     def check_connection(self):
         try:
             con = sqlite3.connect("emp_salary.db")
-            query = f"CREATE TABLE emp_table (e_id INTEGER PRIMARY KEY, designation TEXT NOT NULL, name TEXT NOT NULL, age TEXT NOT NULL, gender TEXT NOT NULL, email TEXT NOT NULL UNIQUE, doj TEXT NOT NULL, dob TEXT NOT NULL," \
-                    f"experience TEXT NOT NULL, proof_id TEXT NOT NULL, contact TEXT NOT NULL UNIQUE, address TEXT NOT NULL, month TEXT NOT NULL, year TEXT NOT NULL, b_salary TEXT NOT NULL, total_days TEXT NOT NULL, absent_days TEXT NOT NULL, medical TEXT NOT NULL," \
-                    f"p_found TEXT NOT NULL, convince TEXT NOT NULL, net_salary TEXT NOT NULL, salary_receipt TEXT NOT NULL)"
+            query = "CREATE TABLE IF NOT EXISTS emp_table (e_id INTEGER PRIMARY KEY, designation TEXT NOT NULL, name TEXT NOT NULL, age TEXT NOT NULL, gender TEXT NOT NULL, email TEXT NOT NULL UNIQUE, doj TEXT NOT NULL, dob TEXT NOT NULL," \
+                    "experience TEXT NOT NULL, proof_id TEXT NOT NULL, contact TEXT NOT NULL UNIQUE, address TEXT NOT NULL, month TEXT NOT NULL, year TEXT NOT NULL, b_salary TEXT NOT NULL, total_days TEXT NOT NULL, absent_days TEXT NOT NULL, medical TEXT NOT NULL," \
+                    "p_found TEXT NOT NULL, convince TEXT NOT NULL, net_salary TEXT NOT NULL, salary_receipt TEXT NOT NULL)"
 
             con.execute(query)
             con.commit()
             con.close()
 
-            print('Database connected...')
+            # print('Database connected...')
 
         except Exception as e:
             messagebox.showerror('Error connection', f"{e}")
